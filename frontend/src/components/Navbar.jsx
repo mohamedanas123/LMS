@@ -19,7 +19,7 @@ export default function Navbar({
         <div className="flex items-center gap-md">
           <button className="brand" onClick={() => onTabChange('courses')}>
             <span>LMS CORE</span>
-            <span className="brand-badge">REACT MVP</span>
+            <span className="brand-badge">SECURE</span>
           </button>
 
           <nav>
@@ -74,15 +74,6 @@ export default function Navbar({
                   </button>
                 </li>
               )}
-
-              <li>
-                <button
-                  className={`nav-link ${currentTab === 'security' ? 'active' : ''}`}
-                  onClick={() => onTabChange('security')}
-                >
-                  Security &amp; API Docs
-                </button>
-              </li>
             </ul>
           </nav>
         </div>

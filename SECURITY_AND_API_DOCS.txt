@@ -1,0 +1,186 @@
+================================================================================
+           LMS CORE — API SPECIFICATION & SECURITY VERIFICATION GUIDE
+================================================================================
+
+1. SYSTEM USER CREDENTIALS & ROLES
+--------------------------------------------------------------------------------
+The application comes pre-seeded with the following accounts for testing:
+
+ROLE          USERNAME          PASSWORD          FULL NAME
+--------------------------------------------------------------------------------
+Admin         admin             Admin@12345       System Administrator
+Instructor    instructor_alan   Instructor@12345  Prof. Alan Turing
+Instructor    instructor_ada    Instructor@12345  Dr. Ada Lovelace
+Student       student_alice     Student@12345     Alice Smith
+Student       student_bob       Student@12345     Bob Jones
+--------------------------------------------------------------------------------
+
+
+2. SECURITY CONTROLS & ARCHITECTURAL DEFENSES
+--------------------------------------------------------------------------------
+- Password Hashing:
+  Passwords are never stored in plaintext. They are salted and hashed using
+  BCrypt (org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder).
+
+- Authentication & Authorization:
+  Stateless JSON Web Tokens (JWT) signed with HMAC-SHA256 (JJWT 0.12.6).
+  Clients pass the token in HTTP requests via:
+  Authorization: Bearer <your_jwt_token>
+
+- Role-Based Access Control (RBAC):
+  Spring Security 6 method security (@PreAuthorize) enforces distinct 
+  privileges across ROLE_STUDENT, ROLE_INSTRUCTOR, and ROLE_ADMIN.
+
+- Broken Object Level Authorization (IDOR Defense):
+  Students can strictly view and download only their own submissions.
+  Instructors can only view, download, and grade submissions for courses they teach.
+  Admins have system-wide oversight.
+
+- Stored XSS Mitigation:
+  OWASP Java HTML Sanitizer policy strips <script>, <iframe>, event handlers
+  (onload, onerror, onclick), and unsafe protocols from submission text, course
+  descriptions, and instructor feedback comments.
+
+- Secure File Upload Pipeline:
+  * Extension Whitelist: .pdf, .docx, .txt, .zip, .png, .jpg, .jpeg, .py, .java, .cpp, .c, .md
+  * Executable Blacklist: Rejects .exe, .bat, .sh, .cmd, .jar, .jsp, .php, .asp, etc.
+  * Path Traversal Prevention: Rejects filenames containing ".." or path separators.
+  * Storage Isolation: Files are saved with randomized UUID filenames on disk.
+  * Size Limitation: Enforces a 10MB maximum file size limit.
+
+- Standardized Error Handling:
+  GlobalExceptionHandler catches all server-side exceptions and returns uniform
+  JSON error objects without exposing internal Java stack traces or database schema details.
+
+
+3. COMPLETE REST API ENDPOINT CATALOG
+--------------------------------------------------------------------------------
+
+[AUTH ENDPOINTS]
+- POST /api/auth/register
+  Access: Public
+  Body: { "username": "string", "email": "string", "password": "string", "fullName": "string", "role": "ROLE_STUDENT" }
+  Description: Register a new student or instructor account.
+
+- POST /api/auth/login
+  Access: Public
+  Body: { "username": "string", "password": "string" }
+  Description: Authenticate credentials and receive a JWT Bearer token.
+
+- POST /api/auth/logout
+  Access: Authenticated
+  Description: Invalidate client session token.
+
+- GET /api/auth/me
+  Access: Authenticated
+  Description: Fetch authenticated user profile details.
+
+
+[COURSE ENDPOINTS]
+- GET /api/courses
+  Access: Public
+  Query Params: ?search=<query> (optional)
+  Description: List all active courses in the catalog.
+
+- GET /api/courses/{id}
+  Access: Public
+  Description: Get detailed information and syllabus for a course.
+
+- POST /api/courses
+  Access: ROLE_INSTRUCTOR, ROLE_ADMIN
+  Body: { "code": "CS-401", "title": "Course Title", "description": "Syllabus..." }
+  Description: Create a new academic course.
+
+- PUT /api/courses/{id}
+  Access: ROLE_INSTRUCTOR (course owner), ROLE_ADMIN
+  Body: { "code": "CS-401", "title": "Updated Title", "description": "Updated..." }
+  Description: Update course title, code, or description.
+
+- DELETE /api/courses/{id}
+  Access: ROLE_INSTRUCTOR (course owner), ROLE_ADMIN
+  Description: Delete a course and associated coursework.
+
+- POST /api/courses/{id}/enroll
+  Access: ROLE_STUDENT, ROLE_ADMIN
+  Description: Enroll current student in the course.
+
+- GET /api/courses/my-courses
+  Access: Authenticated
+  Description: List enrolled courses for students or authored courses for instructors.
+
+
+[ASSIGNMENT ENDPOINTS]
+- POST /api/assignments
+  Access: ROLE_INSTRUCTOR (course owner), ROLE_ADMIN
+  Body: { "courseId": 1, "title": "Lab 1", "description": "Instructions...", "maxScore": 100, "dueDate": "2026-10-15T23:59:00" }
+  Description: Publish a new coursework assignment.
+
+- GET /api/assignments/{id}
+  Access: Authenticated
+  Description: Get assignment details and current student's submission status.
+
+- GET /api/assignments/course/{courseId}
+  Access: Authenticated
+  Description: List all assignments for a course.
+
+- PUT /api/assignments/{id}
+  Access: ROLE_INSTRUCTOR (course owner), ROLE_ADMIN
+  Description: Update assignment specifications.
+
+- DELETE /api/assignments/{id}
+  Access: ROLE_INSTRUCTOR (course owner), ROLE_ADMIN
+  Description: Delete an assignment.
+
+
+[SUBMISSION & GRADING ENDPOINTS]
+- POST /api/submissions
+  Access: ROLE_STUDENT, ROLE_ADMIN
+  Content-Type: multipart/form-data
+  Form Fields: 
+    * assignmentId (Long, required)
+    * textContent (String, optional)
+    * file (MultipartFile, optional, max 10MB)
+  Description: Submit work for an assignment (text response and/or file attachment).
+
+- GET /api/submissions/{id}
+  Access: Owner Student, Course Instructor, Admin
+  Description: Retrieve a submission (enforces IDOR authorization checks).
+
+- GET /api/submissions/assignment/{assignmentId}
+  Access: Course Instructor, Admin
+  Description: List all student submissions for an assignment.
+
+- GET /api/submissions/my-submissions
+  Access: ROLE_STUDENT, ROLE_ADMIN
+  Description: List all submissions made by the authenticated student.
+
+- PUT /api/submissions/{id}/feedback
+  Access: Course Instructor, Admin
+  Body: { "grade": 95.0, "comments": "Great work on the lab analysis." }
+  Description: Grade a submission and provide feedback.
+
+- GET /api/submissions/{id}/download
+  Access: Owner Student, Course Instructor, Admin
+  Description: Download the submitted file attachment.
+
+
+[ADMINISTRATION ENDPOINTS]
+- GET /api/users
+  Access: ROLE_ADMIN
+  Description: List all registered platform users and assigned roles.
+
+- GET /api/users/{id}
+  Access: ROLE_ADMIN
+  Description: Retrieve individual user details.
+
+
+4. TESTING WITH POSTMAN / OWASP ZAP
+--------------------------------------------------------------------------------
+1. Authenticate via POST http://localhost:8080/api/auth/login with JSON body:
+   { "username": "student_alice", "password": "Student@12345" }
+2. Extract the JWT from data.token.
+3. For protected endpoints, set header:
+   Authorization: Bearer <your_jwt_token>
+4. Test IDOR access controls: Login as student_bob and attempt to GET /api/submissions/1
+   (Alice's submission). The system will return 403 Forbidden with a safe error message.
+================================================================================

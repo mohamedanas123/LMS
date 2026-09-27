@@ -1,13 +1,11 @@
 import React, { useState, useEffect } from 'react';
 import { api } from './api';
 import Navbar from './components/Navbar';
-import RoleSwitcher from './components/RoleSwitcher';
 import CourseCatalog from './components/CourseCatalog';
 import MyCourses from './components/MyCourses';
 import AssignmentsHub from './components/AssignmentsHub';
 import SubmissionsWorkspace from './components/SubmissionsWorkspace';
 import UserDirectory from './components/UserDirectory';
-import SecurityDocs from './components/SecurityDocs';
 import {
   LoginModal,
   RegisterModal,
@@ -57,18 +55,6 @@ export default function App() {
     }, 4000);
   };
 
-  const handleQuickLogin = async (username, password) => {
-    try {
-      const data = await api.login(username, password);
-      api.setAuth(data.token, data.user);
-      setUser(data.user);
-      showToast(`Logged in as ${data.user.fullName} (${data.user.role.replace('ROLE_', '')})`, 'success');
-      triggerRefresh();
-    } catch (err) {
-      showToast(err.message, 'danger');
-    }
-  };
-
   const handleLogout = () => {
     api.clearAuth();
     setUser(null);
@@ -101,8 +87,6 @@ export default function App() {
         }}
         onLogout={handleLogout}
       />
-
-      <RoleSwitcher onQuickLogin={handleQuickLogin} />
 
       <main className="main-content">
         {currentTab === 'courses' && (
@@ -153,8 +137,6 @@ export default function App() {
         )}
 
         {currentTab === 'users' && <UserDirectory />}
-
-        {currentTab === 'security' && <SecurityDocs />}
       </main>
 
       {/* MODALS */}
