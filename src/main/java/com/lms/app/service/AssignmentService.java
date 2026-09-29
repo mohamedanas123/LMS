@@ -14,7 +14,6 @@ import com.lms.app.model.User;
 import com.lms.app.repository.AssignmentRepository;
 import com.lms.app.repository.CourseRepository;
 import com.lms.app.repository.SubmissionRepository;
-import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -23,7 +22,6 @@ import java.util.Optional;
 import java.util.stream.Collectors;
 
 @Service
-@RequiredArgsConstructor
 public class AssignmentService {
 
     private final AssignmentRepository assignmentRepository;
@@ -31,6 +29,14 @@ public class AssignmentService {
     private final SubmissionRepository submissionRepository;
     private final AuthService authService;
     private final HtmlSanitizerService sanitizer;
+
+    public AssignmentService(AssignmentRepository assignmentRepository, CourseRepository courseRepository, SubmissionRepository submissionRepository, AuthService authService, HtmlSanitizerService sanitizer) {
+        this.assignmentRepository = assignmentRepository;
+        this.courseRepository = courseRepository;
+        this.submissionRepository = submissionRepository;
+        this.authService = authService;
+        this.sanitizer = sanitizer;
+    }
 
     @Transactional
     public AssignmentDto createAssignment(AssignmentCreateDto dto) {

@@ -5,7 +5,6 @@ import com.lms.app.dto.CourseCreateDto;
 import com.lms.app.dto.CourseDto;
 import com.lms.app.service.CourseService;
 import jakarta.validation.Valid;
-import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
@@ -15,10 +14,13 @@ import java.util.List;
 
 @RestController
 @RequestMapping("/api/courses")
-@RequiredArgsConstructor
 public class CourseController {
 
     private final CourseService courseService;
+
+    public CourseController(CourseService courseService) {
+        this.courseService = courseService;
+    }
 
     @GetMapping
     public ResponseEntity<ApiResponse<List<CourseDto>>> getAllCourses(@RequestParam(required = false) String search) {

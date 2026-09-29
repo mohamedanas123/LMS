@@ -10,6 +10,7 @@ import org.springframework.boot.test.autoconfigure.web.servlet.AutoConfigureMock
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.http.MediaType;
 import org.springframework.test.web.servlet.MockMvc;
+import org.springframework.transaction.annotation.Transactional;
 
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
@@ -18,6 +19,7 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 
 @SpringBootTest
 @AutoConfigureMockMvc
+@Transactional
 class LmsApplicationTests {
 
     @Autowired
@@ -75,9 +77,10 @@ class LmsApplicationTests {
     @Test
     @DisplayName("New student can register securely")
     void userCanRegister() throws Exception {
+        String uniqueUser = "testuser_" + System.currentTimeMillis();
         RegisterRequest req = new RegisterRequest();
-        req.setUsername("charlie_test");
-        req.setEmail("charlie@student.edu");
+        req.setUsername(uniqueUser);
+        req.setEmail(uniqueUser + "@student.edu");
         req.setPassword("CharlieSecure@123");
         req.setFullName("Charlie Test");
         req.setRole("ROLE_STUDENT");
@@ -88,6 +91,6 @@ class LmsApplicationTests {
                 .andExpect(status().isCreated())
                 .andExpect(jsonPath("$.success").value(true))
                 .andExpect(jsonPath("$.data.token").isString())
-                .andExpect(jsonPath("$.data.user.username").value("charlie_test"));
+                .andExpect(jsonPath("$.data.user.username").value(uniqueUser));
     }
 }

@@ -6,7 +6,6 @@ import com.lms.app.dto.FeedbackDto;
 import com.lms.app.dto.SubmissionDto;
 import com.lms.app.service.SubmissionService;
 import jakarta.validation.Valid;
-import lombok.RequiredArgsConstructor;
 import org.springframework.core.io.Resource;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpStatus;
@@ -20,10 +19,13 @@ import java.util.List;
 
 @RestController
 @RequestMapping("/api/submissions")
-@RequiredArgsConstructor
 public class SubmissionController {
 
     private final SubmissionService submissionService;
+
+    public SubmissionController(SubmissionService submissionService) {
+        this.submissionService = submissionService;
+    }
 
     @PostMapping(consumes = MediaType.MULTIPART_FORM_DATA_VALUE)
     @PreAuthorize("hasAnyRole('STUDENT', 'ADMIN')")

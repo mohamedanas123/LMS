@@ -5,7 +5,6 @@ import com.lms.app.dto.AssignmentCreateDto;
 import com.lms.app.dto.AssignmentDto;
 import com.lms.app.service.AssignmentService;
 import jakarta.validation.Valid;
-import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
@@ -15,10 +14,13 @@ import java.util.List;
 
 @RestController
 @RequestMapping("/api/assignments")
-@RequiredArgsConstructor
 public class AssignmentController {
 
     private final AssignmentService assignmentService;
+
+    public AssignmentController(AssignmentService assignmentService) {
+        this.assignmentService = assignmentService;
+    }
 
     @PostMapping
     @PreAuthorize("hasAnyRole('INSTRUCTOR', 'ADMIN')")

@@ -10,7 +10,6 @@ import com.lms.app.model.Role;
 import com.lms.app.model.User;
 import com.lms.app.repository.UserRepository;
 import com.lms.app.security.JwtUtils;
-import lombok.RequiredArgsConstructor;
 import org.springframework.security.authentication.AuthenticationManager;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.security.core.Authentication;
@@ -20,7 +19,6 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 @Service
-@RequiredArgsConstructor
 public class AuthService {
 
     private final UserRepository userRepository;
@@ -28,6 +26,14 @@ public class AuthService {
     private final JwtUtils jwtUtils;
     private final AuthenticationManager authenticationManager;
     private final HtmlSanitizerService sanitizer;
+
+    public AuthService(UserRepository userRepository, PasswordEncoder passwordEncoder, JwtUtils jwtUtils, AuthenticationManager authenticationManager, HtmlSanitizerService sanitizer) {
+        this.userRepository = userRepository;
+        this.passwordEncoder = passwordEncoder;
+        this.jwtUtils = jwtUtils;
+        this.authenticationManager = authenticationManager;
+        this.sanitizer = sanitizer;
+    }
 
     @Transactional
     public AuthResponse register(RegisterRequest request) {

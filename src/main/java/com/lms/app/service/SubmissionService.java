@@ -11,7 +11,6 @@ import com.lms.app.repository.AssignmentRepository;
 import com.lms.app.repository.EnrollmentRepository;
 import com.lms.app.repository.FeedbackRepository;
 import com.lms.app.repository.SubmissionRepository;
-import lombok.RequiredArgsConstructor;
 import org.springframework.core.io.Resource;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -23,7 +22,6 @@ import java.util.Optional;
 import java.util.stream.Collectors;
 
 @Service
-@RequiredArgsConstructor
 public class SubmissionService {
 
     private final SubmissionRepository submissionRepository;
@@ -33,6 +31,16 @@ public class SubmissionService {
     private final FileStorageService fileStorageService;
     private final HtmlSanitizerService sanitizer;
     private final AuthService authService;
+
+    public SubmissionService(SubmissionRepository submissionRepository, AssignmentRepository assignmentRepository, EnrollmentRepository enrollmentRepository, FeedbackRepository feedbackRepository, FileStorageService fileStorageService, HtmlSanitizerService sanitizer, AuthService authService) {
+        this.submissionRepository = submissionRepository;
+        this.assignmentRepository = assignmentRepository;
+        this.enrollmentRepository = enrollmentRepository;
+        this.feedbackRepository = feedbackRepository;
+        this.fileStorageService = fileStorageService;
+        this.sanitizer = sanitizer;
+        this.authService = authService;
+    }
 
     @Transactional
     public SubmissionDto submitAssignment(Long assignmentId, String textContent, MultipartFile file) {

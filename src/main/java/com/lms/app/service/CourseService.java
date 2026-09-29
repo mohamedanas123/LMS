@@ -11,7 +11,6 @@ import com.lms.app.model.Role;
 import com.lms.app.model.User;
 import com.lms.app.repository.CourseRepository;
 import com.lms.app.repository.EnrollmentRepository;
-import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -19,13 +18,19 @@ import java.util.List;
 import java.util.stream.Collectors;
 
 @Service
-@RequiredArgsConstructor
 public class CourseService {
 
     private final CourseRepository courseRepository;
     private final EnrollmentRepository enrollmentRepository;
     private final AuthService authService;
     private final HtmlSanitizerService sanitizer;
+
+    public CourseService(CourseRepository courseRepository, EnrollmentRepository enrollmentRepository, AuthService authService, HtmlSanitizerService sanitizer) {
+        this.courseRepository = courseRepository;
+        this.enrollmentRepository = enrollmentRepository;
+        this.authService = authService;
+        this.sanitizer = sanitizer;
+    }
 
     public List<CourseDto> getAllCourses(String search) {
         User currentUser = null;

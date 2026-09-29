@@ -5,7 +5,6 @@ import com.lms.app.dto.UserDto;
 import com.lms.app.exception.ResourceNotFoundException;
 import com.lms.app.model.User;
 import com.lms.app.repository.UserRepository;
-import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.GetMapping;
@@ -18,11 +17,14 @@ import java.util.stream.Collectors;
 
 @RestController
 @RequestMapping("/api/users")
-@RequiredArgsConstructor
 @PreAuthorize("hasRole('ADMIN')")
 public class UserController {
 
     private final UserRepository userRepository;
+
+    public UserController(UserRepository userRepository) {
+        this.userRepository = userRepository;
+    }
 
     @GetMapping
     public ResponseEntity<ApiResponse<List<UserDto>>> getAllUsers() {
